@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Smart Attendance — Neon Login</title>
+
+    <style>
+        :root{
+          --bg1: #061026;
+          --bg2: #041223;
+          --neon: #00aaff;
+          --neon-2: #2ea6ff;
+          --muted: rgba(255,255,255,0.55);
+          font-family: Inter, sans-serif;
+        }
+
+        html,body{
+          margin:0;
+          height:100%;
+          background: radial-gradient(1200px 600px at 10% 10%, rgba(0,140,255,0.08), transparent 8%),
+                      radial-gradient(1000px 500px at 90% 90%, rgba(58,170,255,0.06), transparent 6%),
+                      linear-gradient(180deg,var(--bg1),var(--bg2));
+          display:flex;
+          justify-content:center;
+          align-items:center;
+        }
+
+        .circuit {
+          position:fixed;
+          inset:0;
+          background-image:
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(180deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+          background-size: 240px 240px;
+          opacity:0.4;
+          z-index:0;
+        }
+
+        .wrap {
+          width:100%;
+          max-width:460px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          z-index:2;
+          padding: 20px;
+        }
+
+        @keyframes centerPop {
+          0% { opacity:0; transform:scale(0.8); filter: blur(4px); }
+          60% { opacity:1; transform:scale(1.03); filter: blur(0); }
+          100% { transform:scale(1); }
+        }
+
+        .card {
+          width:100%;
+          padding:28px;
+          border-radius:18px;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(0,170,255,0.22);
+          box-shadow:
+            0 8px 40px rgba(0,10,30,0.7),
+            0 0 50px rgba(0,160,255,0.14);
+          backdrop-filter: blur(8px) saturate(120%);
+          position:relative;
+          animation:centerPop 0.6s ease-out forwards;
+        }
+
+        .title {
+          font-size:26px;
+          font-weight:700;
+          color:#e9fbff;
+          text-align:center;
+          margin-bottom:16px;
+        }
+
+        .qr-wrap{
+          display:flex;
+          justify-content:center;
+          margin-bottom:18px;
+        }
+
+        .qr {
+          width:72px;
+          height:72px;
+          border-radius:12px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background: rgba(0,160,255,0.12);
+          border:1px solid rgba(0,170,255,0.2);
+          box-shadow: 0 4px 20px rgba(0,120,200,0.14);
+        }
+
+        .field { margin-bottom:14px; }
+
+        input {
+          width:100%;
+          padding:14px 12px;
+          border-radius:10px;
+          border:1px solid rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.03);
+          color:#e9fbff;
+          font-size:15px;
+        }
+
+        input::placeholder { color:var(--muted); }
+
+        .btn {
+          width:100%;
+          padding:12px 16px;
+          margin-top:6px;
+          font-size:16px;
+          font-weight:700;
+          border:none;
+          border-radius:10px;
+          background: linear-gradient(180deg,var(--neon-2), var(--neon));
+          cursor:pointer;
+          color:#002233;
+          box-shadow: 0 8px 30px rgba(0,160,255,0.2);
+        }
+
+        .message { text-align:center; font-size:14px; }
+        .error { color: #ff6b6b; }
+        .success { color: #4cd964; }
+    </style>
+</head>
+
+<body>
+
+<div class="circuit"></div>
+
+<div class="wrap">
+    <div class="card">
+        <div class="title">Smart Attendance Login</div>
+
+        <div class="qr-wrap">
+            <div class="qr">
+                <svg width="46" height="46" fill="#00aaff" viewBox="0 0 24 24">
+                    <rect x="2" y="2" width="6" height="6" rx="1.2"/>
+                    <rect x="2" y="16" width="6" height="6" rx="1.2"/>
+                    <rect x="16" y="2" width="6" height="6" rx="1.2"/>
+                    <rect x="11" y="11" width="2" height="2"/>
+                    <rect x="14" y="11" width="2" height="2"/>
+                    <rect x="11" y="14" width="2" height="2"/>
+                    <rect x="14" y="14" width="2" height="2"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- REAL BACKEND WORKING FORM -->
+        <form action="/login" method="post">
+
+            <div class="field">
+                <input type="text"
+                       name="username"
+                       placeholder="Username"
+                       required>
+            </div>
+
+            <div class="field">
+                <input type="password"
+                       name="password"
+                       placeholder="Password"
+                       required>
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+
+            <p th:text="${error}" class="message error"></p>
+            <p th:text="${message}" class="message success"></p>
+
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>

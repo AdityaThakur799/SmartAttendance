@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Approval – SmartLog</title>
+
+  <style>
+
+    /* ============ GLOBAL LIGHT THEME (same as analytics) ============ */
+    :root {
+      --bg:#eef3f8;
+      --card:#ffffff;
+      --accent:#2b9cff;
+      --text:#111827;
+      --muted:#6b7280;
+      --radius:14px;
+      --shadow:0 12px 24px rgba(18,38,63,0.06);
+      --sidebar-border:#e6eef7;
+    }
+
+    /* ============ GLOBAL DARK THEME (same as dashboard + analytics) ============ */
+    :root[data-theme="dark"]{
+      --bg:#050505;
+      --card:#0f0f0f;
+      --accent:#2b9cff;
+      --text:#e6eef8;
+      --muted:#94a3b8;
+      --shadow:none;
+      --sidebar-border:rgba(255,255,255,0.03);
+    }
+
+    body {
+      margin:0;
+      font-family:Inter, Arial;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    /* ============ LAYOUT ============ */
+    .app {
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:22px;
+      min-height:100vh;
+      padding:18px;
+    }
+
+    /* ============ SIDEBAR ============ */
+    .sidebar{
+      width:260px;
+      background:var(--card);
+      padding:28px 20px;
+      border-right:1px solid var(--sidebar-border);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      border-radius:12px;
+      box-shadow:var(--shadow);
+    }
+
+    .brand{
+      font-weight:700;
+      color:var(--accent);
+      font-size:22px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .nav{
+      margin-top:8px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .nav button{
+      border:0;
+      background:transparent;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:10px;
+      color:var(--text);
+      cursor:pointer;
+      font-size:15px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .nav button:hover{
+      background:rgba(43,156,255,0.08);
+      color:var(--accent);
+    }
+
+    .nav .active{
+      background:linear-gradient(90deg,var(--accent),#6fb8ff);
+      color:white;
+    }
+
+    /* ============ MAIN CONTENT ============ */
+    .main{
+      padding:26px 28px;
+    }
+
+    .card{
+      background:var(--card);
+      padding:20px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:14px;
+    }
+
+    th, td{
+      padding:12px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      color:var(--text);
+    }
+
+    th{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .btn{
+      padding:6px 12px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:13px;
+      color:white;
+    }
+
+    .approve { background:#2ecc71; }
+    .reject { background:#e74c3c; }
+
+  </style>
+</head>
+<body>
+
+<!-- Load THEME from dashboard -->
+<script>
+  const savedTheme = localStorage.getItem("theme") || "light";
+  // use same attribute as analytics & dashboard
+  document.documentElement.setAttribute("data-theme", savedTheme);
+</script>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">SmartLog</div>
+
+    <nav class="nav">
+      <button onclick="location.href='/dashboard'">🏠 Dashboard</button>
+      <button onclick="location.href='/analytics'">📈 Analytics</button>
+      <button onclick="location.href='/time'">⏱ Time Management</button>
+      <button onclick="location.href='/students'">👥 Students</button>
+      <button onclick="location.href='/attendance'">📅 Attendance</button>
+      <button class="active" onclick="location.href='/approval'">✔ Approval</button>
+    </nav>
+
+    <div style="margin-top:auto;color:var(--muted);font-size:13px">
+      Logged in as <strong>Admin</strong><br>
+      <small>Smart Attendance</small>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <div class="card">
+      <h2>Pending Approval Requests</h2>
+      <p style="color:var(--muted);margin-top:6px;">
+        Requests submitted by students for corrections or updates.
+      </p>
+
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Student Name</th>
+          <th>Reason</th>
+          <th>Requested Change</th>
+          <th>Action</th>
+        </tr>
+        </thead>
+
+        <tbody id="approval-body"></tbody>
+      </table>
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+
+  let approvalRequests = [
+    { id:"2021-0001", name:"Caleb White", reason:"Missed attendance", requested:"Mark Present" },
+    { id:"2021-0002", name:"Anna Lee", reason:"Wrong checkout time", requested:"Fix checkout to 3:10 PM" }
+  ];
+
+  function loadApprovals(){
+    const body = document.getElementById("approval-body");
+    body.innerHTML = "";
+
+    approvalRequests.forEach((req,i)=>{
+      body.innerHTML += `
+        <tr>
+          <td>${req.id}</td>
+          <td>${req.name}</td>
+          <td>${req.reason}</td>
+          <td>${req.requested}</td>
+          <td>
+            <button class="btn approve" onclick="approve(${i})">Approve</button>
+            <button class="btn reject" onclick="reject(${i})">Reject</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  function approve(i){
+    alert(approvalRequests[i].name + " request approved!");
+    approvalRequests.splice(i,1);
+    loadApprovals();
+  }
+
+  function reject(i){
+    alert(approvalRequests[i].name + " request rejected!");
+    approvalRequests.splice(i,1);
+    loadApprovals();
+  }
+
+  loadApprovals();
+
+</script>
+
+</body>
+</html>

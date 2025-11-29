@@ -1,0 +1,12 @@
+com\smartattendance\model\Student.class
+com\smartattendance\util\QRCodeScanner.class
+com\smartattendance\Main.class
+com\smartattendance\model\AttendanceRecord.class
+com\smartattendance\util\RunAttendanceScanner$Student.class
+com\smartattendance\database\DatabaseConnection.class
+com\smartattendance\service\AttendanceService.class
+com\smartattendance\util\QRCodeGenerator.class
+com\smartattendance\service\StudentService.class
+com\smartattendance\util\GenerateQRCodes.class
+com\smartattendance\util\RunAttendanceScanner.class
+QRCodeGenerator.class

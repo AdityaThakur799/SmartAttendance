@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Scanner</title>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f4f6fa;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        #reader {
+            width: 380px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+        }
+
+        #resultBox {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            padding: 12px 15px;
+            border-radius: 10px;
+            background: white;
+            width: 380px;
+            border-left: 6px solid #2b9cff;
+        }
+
+        .success { border-left-color: #28c840; color: #28c840; }
+        .error   { border-left-color: #ff3737; color: #ff3737; }
+        .wait    { border-left-color: #ffb300; color: #ffb300; }
+    </style>
+</head>
+<body>
+
+<h2>QR Code Scanner</h2>
+
+<div id="reader"></div>
+<div id="resultBox">Scan any QR…</div>
+
+<script>
+    function showMessage(msg, type) {
+        let box = document.getElementById("resultBox");
+        box.innerHTML = msg;
+        box.className = type;
+    }
+
+    function onScanSuccess(decodedText) {
+
+        showMessage("Processing…", "wait");
+
+        // SENDING RAW QR TEXT TO BACKEND
+        fetch("/scan", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: decodedText
+        })
+        .then(res => res.text())
+        .then(msg => {
+            // CHECK MESSAGE TYPE
+            if (msg.includes("checked IN")) {
+                showMessage(msg, "success");
+            } else if (msg.includes("checked OUT")) {
+                showMessage(msg, "success");
+            } else if (msg.includes("after")) {
+                showMessage(msg, "wait");
+            } else {
+                showMessage(msg, "error");
+            }
+        })
+        .catch(() => showMessage("❌ Network error", "error"));
+    }
+
+    // INIT CAMERA SCANNER
+    const scanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: 250 }
+    );
+    scanner.render(onScanSuccess);
+</script>
+
+</body>
+</html>

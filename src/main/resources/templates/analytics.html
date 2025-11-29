@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Analytics — SmartLog</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root{
+          --bg:#eef3f8;
+          --card:#ffffff;
+          --accent:#2b9cff;
+          --muted:#6b7280;
+          --text:#111827;
+          --radius:14px;
+          --shadow:0 12px 24px rgba(18,38,63,0.06);
+          --chart-grid:rgba(230,238,247,0.8);
+          --sidebar-border:#e6eef7;
+        }
+        :root[data-theme="dark"]{
+          --bg:#050505;
+          --card:#0f0f0f;
+          --accent:#2b9cff;
+          --muted:#94a3b8;
+          --text:#e6eef8;
+          --chart-grid:rgba(255,255,255,0.06);
+          --sidebar-border:rgba(255,255,255,0.03);
+        }
+        body{
+          margin:0;
+          font-family:Inter;
+          background:var(--bg);
+          color:var(--text);
+        }
+        .app{
+          display:grid;
+          grid-template-columns:260px 1fr;
+          gap:22px;
+          padding:18px;
+        }
+        .sidebar{
+          background:var(--card);
+          border-radius:12px;
+          padding:20px;
+          border-right:1px solid var(--sidebar-border);
+        }
+        .brand{color:var(--accent);font-weight:700;font-size:22px;}
+        .nav{display:flex;flex-direction:column;gap:8px;margin-top:20px;}
+        .nav button{
+          padding:10px;
+          border:0;
+          background:transparent;
+          color:var(--text);
+          text-align:left;
+          cursor:pointer;
+          border-radius:10px;
+        }
+        .nav button:hover{
+          background:linear-gradient(90deg,var(--accent),#9dd7ff22);
+          color:var(--accent);
+        }
+        .nav .active{
+          background:linear-gradient(90deg,var(--accent),#6fb8ff);
+          color:white;
+        }
+        .main{padding:26px 18px;}
+        .row{
+          display:grid;
+          grid-template-columns:repeat(3,1fr);
+          gap:18px;
+        }
+        .stat-card{
+          background:var(--card);
+          padding:18px;
+          border-radius:12px;
+          text-align:center;
+        }
+        .stat-big{color:var(--accent);font-size:28px;font-weight:800;}
+        .card{
+          background:var(--card);
+          padding:16px;
+          border-radius:12px;
+          margin-top:20px;
+        }
+        table{width:100%;border-collapse:collapse;font-size:14px;}
+        thead th{padding:10px;color:var(--muted);font-size:13px;}
+        tbody td{padding:12px 8px;border-bottom:1px solid #00000015;}
+        .view-btn{
+          padding:6px 10px;
+          background:var(--accent);
+          color:white;
+          border-radius:8px;
+          text-decoration:none;
+        }
+
+        /* FIX: Proper chart height control */
+        .chart-wrapper{
+            width:100%;
+            height:260px;
+            overflow:hidden;
+        }
+        .chart-wrapper canvas{
+            width:100% !important;
+            height:100% !important;
+            max-height:250px !important;
+        }
+
+        /* Student modal chart fix */
+        .student-chart-wrapper{
+            width:100%;
+            height:240px;
+        }
+        .student-chart-wrapper canvas{
+            height:100% !important;
+            max-height:230px !important;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- STUDENT ANALYTICS MODAL -->
+<div id="studentModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9999;align-items:center;justify-content:center;">
+    <div style="width:900px;max-width:95%;background:var(--card);padding:20px;border-radius:14px;position:relative;">
+        <button id="studentModalClose" style="position:absolute;top:14px;right:14px;font-size:20px;border:none;background:none;cursor:pointer;">✕</button>
+
+        <div style="display:flex;gap:10px;align-items:center;">
+            <div style="font-weight:800;font-size:20px" id="s-name">Student</div>
+            <div style="color:var(--muted);" id="s-roll"></div>
+        </div>
+
+        <div class="modal-grid" style="display:grid;grid-template-columns:1fr 350px;gap:20px;margin-top:20px;">
+            <div>
+                <h4>Monthly Attendance</h4>
+                <div class="student-chart-wrapper">
+                    <canvas id="studentMonthlyChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <h4>Summary</h4>
+                <div class="student-chart-wrapper" style="height:200px;">
+                    <canvas id="studentPieChart"></canvas>
+                </div>
+                <div style="margin-top:10px;">
+                    Present: <b id="tot-present">0</b><br>
+                    Absent: <b id="tot-absent">0</b><br>
+                    Late: <b id="tot-late">0</b>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">SmartLog</div>
+
+        <nav class="nav">
+            <button onclick="location.href='/dashboard'">🏠 Dashboard</button>
+            <button class="active">📈 Analytics</button>
+            <button onclick="location.href='/time'">⏱ Time</button>
+            <button onclick="location.href='/students'">👥 Students</button>
+            <button onclick="location.href='/attendance'">📅 Attendance</button>
+        </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- Summary -->
+        <div class="row">
+            <div class="stat-card">
+                <div class="stat-big" id="sum-present">0</div>
+                <div class="stat-label">Present</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-big" id="sum-late">0</div>
+                <div class="stat-label">Late</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-big" id="sum-absent">0</div>
+                <div class="stat-label">Absent</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Daily Attendance Chart</h3>
+
+            <!-- FIX: Proper wrapper -->
+            <div class="chart-wrapper">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Students Analytics</h3>
+            <table>
+                <thead>
+                <tr><th>ID</th><th>Name</th><th>Action</th></tr>
+                </thead>
+                <tbody id="analytics-students"></tbody>
+            </table>
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+
+    /* ----------- CSS Helpers ----------- */
+    function cssVar(v){
+        return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    }
+
+    function rgba(hex,alpha){
+        if(!hex.startsWith("#")) hex = "#2b9cff";
+        const r = parseInt(hex.substr(1,2),16);
+        const g = parseInt(hex.substr(3,2),16);
+        const b = parseInt(hex.substr(5,2),16);
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    /* ----------- Safe Fetch ----------- */
+    async function get(url){
+        try{
+            const r = await fetch(url,{cache:"no-store"});
+            return await r.json();
+        }catch(e){
+            console.error("API error:", url);
+            return null;
+        }
+    }
+
+    /* ----------- LOAD STUDENTS TABLE ----------- */
+    async function loadStudents(){
+        const data = await get("/api/students");
+        const tbody = document.getElementById("analytics-students");
+
+        tbody.innerHTML = "";
+
+        data.forEach(s=>{
+            tbody.innerHTML += `
+                <tr>
+                    <td>${s.rollNo}</td>
+                    <td>${s.name}</td>
+                    <td><a href="#" class="view-btn" onclick="openStudent(${s.id})">View</a></td>
+                </tr>
+            `;
+        });
+    }
+
+    /* ----------- SITE ANALYTICS (Summary + Daily Chart) ----------- */
+    let dailyChart = null;
+
+    async function loadSummary(){
+
+        const sum = await get("/api/analytics/summary");
+
+        document.getElementById("sum-present").innerText = sum.present;
+        document.getElementById("sum-late").innerText = sum.late;
+        document.getElementById("sum-absent").innerText = sum.absent;
+
+        const daily = await get("/api/analytics/daily");
+        const labels = daily.map(d=>d.date);
+        const counts = daily.map(d=>d.count);
+
+        const accent = cssVar("--accent");
+
+        if(dailyChart) dailyChart.destroy();
+
+        dailyChart = new Chart(document.getElementById("monthlyChart"),{
+            type:"bar",
+            data:{
+                labels:labels.slice(-30),
+                datasets:[{
+                    label:"Present Count",
+                    data:counts.slice(-30),
+                    backgroundColor: rgba(accent,0.5),
+                    borderColor: accent,
+                    borderWidth: 1
+                }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                scales:{
+                    y:{beginAtZero:true, suggestedMax:10},
+                    x:{ticks:{autoSkip:true, maxRotation:0}}
+                }
+            }
+        });
+    }
+
+    /* ----------- STUDENT MODAL ANALYTICS ----------- */
+
+    let smc = null;
+    let spc = null;
+
+    async function openStudent(id){
+        document.getElementById("studentModal").style.display = "flex";
+
+        const data = await get(`/api/analytics/student/${id}`);
+
+        document.getElementById("s-name").innerText = data.name;
+        document.getElementById("s-roll").innerText = `(${data.rollNo})`;
+
+        const months = data.monthlySummary.map(m=>m.month);
+        const presents = data.monthlySummary.map(m=>m.present);
+
+        const accent = cssVar("--accent");
+
+        if(smc) smc.destroy();
+
+        smc = new Chart(document.getElementById("studentMonthlyChart"),{
+            type:"bar",
+            data:{
+                labels: months,
+                datasets:[{
+                    label:"Present (%)",
+                    data: presents,
+                    backgroundColor: rgba(accent,0.5),
+                    borderColor: accent,
+                    borderWidth: 1
+                }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                scales:{
+                    y:{beginAtZero:true, suggestedMax:30},
+                    x:{ticks:{autoSkip:false}}
+                }
+            }
+        });
+
+        document.getElementById("tot-present").innerText = data.totals.present;
+        document.getElementById("tot-absent").innerText = data.totals.absent;
+        document.getElementById("tot-late").innerText = data.totals.late;
+
+        if(spc) spc.destroy();
+
+        spc = new Chart(document.getElementById("studentPieChart"),{
+            type:"pie",
+            data:{
+                labels:["Present","Absent","Late"],
+                datasets:[{
+                    data:[
+                        data.totals.present,
+                        data.totals.absent,
+                        data.totals.late
+                    ],
+                    backgroundColor:[
+                        accent,
+                        "rgba(255,0,0,0.6)",
+                        "rgba(255,165,0,0.9)"
+                    ]
+                }]
+            },
+            options:{responsive:true, maintainAspectRatio:false}
+        });
+    }
+
+    document.getElementById("studentModalClose").onclick = ()=>{
+        document.getElementById("studentModal").style.display = "none";
+        if(smc) smc.destroy();
+        if(spc) spc.destroy();
+    };
+
+    window.onload = async ()=>{
+        await loadStudents();
+        await loadSummary();
+    };
+
+</script>
+
+</body>
+</html>
