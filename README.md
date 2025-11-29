@@ -2,6 +2,12 @@
 
 A modern attendance system using QR Code scanning, dashboard analytics and Spring Boot.
 
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/SpringBoot-3.0-brightgreen)
+![MySQL](https://img.shields.io/badge/Database-MySQL-blue)
+![License](https://img.shields.io/badge/Status-Active-success)
+![Platform](https://img.shields.io/badge/Platform-Web-lightgrey)
+
 ## Features
 - QR Code Check-in / Check-out
 - Attendance Dashboard & Analytics
