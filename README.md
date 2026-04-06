@@ -1,3 +1,4 @@
+#SmartLog
 # Smart Attendance System (Spring Boot + QR Code)
 
 A modern attendance system using QR Code scanning, dashboard analytics, and Spring Boot.
