@@ -196,7 +196,7 @@ public class AttendanceService {
         return list;
     }
 
-    // Monthly attendance %
+    // Monthly attendance % (OLD)
     public List<Integer> getMonthlyAttendancePercent(int months) {
 
         List<Integer> list = new ArrayList<>();
@@ -290,6 +290,79 @@ public class AttendanceService {
             }
 
         } catch (Exception e) { e.printStackTrace(); }
+
+        return list;
+    }
+
+    // ============================================================
+    // ----------- NEW: WEEKLY & MONTHLY (PERFECT DATA) -----------
+    // ============================================================
+
+    // Weekly Attendance (last 8 weeks)
+    public List<Integer> getWeeklyAttendance() {
+
+        List<Integer> weeklyCounts = new ArrayList<>();
+
+        String sql = """
+                SELECT COUNT(*) 
+                FROM attendance_records
+                WHERE YEARWEEK(timestamp) = YEARWEEK(?)
+                """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            for (int i = 7; i >= 0; i--) {
+                LocalDate date = LocalDate.now().minusWeeks(i);
+                ps.setDate(1, Date.valueOf(date));
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) weeklyCounts.add(rs.getInt(1));
+                else weeklyCounts.add(0);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return weeklyCounts;
+    }
+
+    // Monthly Attendance (last 6 months, clean)
+    public List<Integer> getMonthlyAttendance6Months() {
+
+        List<Integer> list = new ArrayList<>();
+
+        String sql = """
+                SELECT 
+                    (SUM(CASE WHEN type='CHECKIN' THEN 1 ELSE 0 END) * 100 / COUNT(*)) AS pct
+                FROM attendance_records
+                WHERE YEAR(timestamp) = ? AND MONTH(timestamp) = ?
+                """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            LocalDate today = LocalDate.now();
+
+            for (int i = 5; i >= 0; i--) {
+
+                LocalDate d = today.minusMonths(i);
+                int year = d.getYear();
+                int month = d.getMonthValue();
+
+                ps.setInt(1, year);
+                ps.setInt(2, month);
+
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) list.add(rs.getInt("pct"));
+                else list.add(0);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return list;
     }

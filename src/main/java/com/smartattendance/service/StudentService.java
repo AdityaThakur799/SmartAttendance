@@ -2,6 +2,7 @@ package com.smartattendance.service;
 
 import com.smartattendance.database.DatabaseConnection;
 import com.smartattendance.model.Student;
+import com.smartattendance.repository.StudentRepository;
 import com.smartattendance.util.QRCodeGenerator;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,16 @@ import java.util.List;
 @Service
 public class StudentService {
 
-    // LOGIN AUTHENTICATION
+    private final StudentRepository studentRepository;
+
+    // Inject JPA Repository
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
+
+    // ============================
+    // LOGIN
+    // ============================
     public boolean authenticateUser(String username, String password) {
         String sql = "SELECT password_hash FROM users WHERE username = ?";
 
@@ -29,12 +39,14 @@ public class StudentService {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Authentication Database Error: " + e.getMessage());
+            System.err.println("Auth error: " + e.getMessage());
         }
         return false;
     }
 
-    // REGISTER NEW STUDENT + AUTO QR GENERATION
+    // ============================
+    // REGISTER NEW STUDENT
+    // ============================
     public int registerNewStudent(Student student) {
 
         String insertSql = "INSERT INTO students (name, roll_no, qr_code) VALUES (?, ?, ?)";
@@ -69,13 +81,14 @@ public class StudentService {
 
         } catch (Exception e) {
             System.err.println("Error registering student: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return newId;
     }
 
-    // SAVE QR TEXT IN DATABASE
+    // ============================
+    // SAVE QR TEXT
+    // ============================
     public boolean saveQrCodeText(int id, String qrText) {
         String sql = "UPDATE students SET qr_code = ? WHERE id = ?";
 
@@ -88,124 +101,50 @@ public class StudentService {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
-            System.err.println("Error saving QR text: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("QR save error: " + e.getMessage());
         }
-
         return false;
     }
 
+    // ============================
     // GET ALL STUDENTS
+    // ============================
     public List<Student> getAllStudents() {
-        List<Student> list = new ArrayList<>();
-        String sql = "SELECT id, name, roll_no, qr_code FROM students";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-
-                Student s = new Student(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("roll_no")
-                );
-
-                try {
-                    String qr = rs.getString("qr_code");
-                    if (qr != null) s.setQrCode(qr);
-                } catch (SQLException ignore) {}
-
-                list.add(s);
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error fetching students: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return list;
+        return studentRepository.findAll();
     }
 
+    // ============================
     // GET STUDENT BY ID
+    // ============================
     public Student getStudentById(int id) {
-        String sql = "SELECT id, name, roll_no, qr_code FROM students WHERE id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-
-                    Student s = new Student(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("roll_no")
-                    );
-
-                    try {
-                        s.setQrCode(rs.getString("qr_code"));
-                    } catch (SQLException ignore) {}
-
-                    return s;
-                }
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error fetching student by id: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return null;
+        return studentRepository.findById(id).orElse(null);
     }
 
-    // DELETE STUDENT + DELETE QR IMAGE
+    // ============================
+    // DELETE STUDENT
+    // ============================
     public boolean deleteStudentById(int id) {
 
         try {
-            File qrFile = new File("qrcodes/student_" + id + ".png");
-            if (qrFile.exists()) {
-                qrFile.delete();
-            }
-        } catch (Exception e) {
-            System.err.println("QR file delete error: " + e.getMessage());
-        }
+            File qr = new File("qrcodes/student_" + id + ".png");
+            if (qr.exists()) qr.delete();
+        } catch (Exception ignored) {}
 
-        String sql = "DELETE FROM students WHERE id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            System.err.println("Error deleting student: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return false;
+        studentRepository.deleteById(id);
+        return true;
     }
 
+    // ============================
     // COUNT STUDENTS
+    // ============================
     public int getStudentCount() {
-        String sql = "SELECT COUNT(*) AS total FROM students";
+        return (int) studentRepository.count();
+    }
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error getting student count: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
+    // ============================
+    // 🔍 SEARCH STUDENTS (NEW)
+    // ============================
+    public List<Student> search(String query) {
+        return studentRepository.findByNameContainingIgnoreCaseOrRollNoContainingIgnoreCase(query, query);
     }
 }

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Student Profile</title>
+</head>
+<body>
+
+<h2>Student Details</h2>
+
+<div th:if="${error}">
+    <p th:text="${error}"></p>
+</div>
+
+<div th:if="${student}">
+    <p><strong>ID: </strong> <span th:text="${student.id}"></span></p>
+    <p><strong>Name: </strong> <span th:text="${student.name}"></span></p>
+    <p><strong>Roll No: </strong> <span th:text="${student.rollNo}"></span></p>
+
+    <img th:src="@{'/qrcodes/student_' + ${student.id} + '.png'}"
+         alt="QR Code" width="200" />
+</div>
+
+</body>
+</html>

@@ -11,15 +11,15 @@ public class DashboardService {
     private final AttendanceService attendanceService;
     private final StudentService studentService;
 
-    // Constructor injection (Spring auto-wires beans)
+    // Constructor injection
     public DashboardService(AttendanceService attendanceService, StudentService studentService) {
         this.attendanceService = attendanceService;
         this.studentService = studentService;
     }
 
-    // ---------------------------------------------
-    // TODAY COUNTS
-    // ---------------------------------------------
+    // ==========================================================
+    //                    TODAY COUNTS
+    // ==========================================================
 
     // Present Today
     public int getTodayPresentCount() {
@@ -38,30 +38,36 @@ public class DashboardService {
         return attendanceService.countLateOn(LocalDate.now());
     }
 
-    // ---------------------------------------------
-    // WEEKLY HEATMAP (Last 7 days)
-    // ---------------------------------------------
+    // ==========================================================
+    //                    WEEKLY TREND  (Real Data)
+    // ==========================================================
+
+    // OLD = getPresentCountsLastNDays(7)
+    // NEW = getWeeklyAttendance() → REAL DB DATA (8 weeks)
     public List<Integer> getWeeklyHeatmap() {
-        return attendanceService.getPresentCountsLastNDays(7);
+        return attendanceService.getWeeklyAttendance();
     }
 
-    // ---------------------------------------------
-    // MONTHLY CHART (Last 6 months)
-    // ---------------------------------------------
+    // ==========================================================
+    //                    MONTHLY TREND  (Real Data)
+    // ==========================================================
+
+    // OLD = getMonthlyAttendancePercent(6)
+    // NEW = getMonthlyAttendance6Months() → REAL DB DATA
     public List<Integer> getMonthlyAttendanceChart() {
-        return attendanceService.getMonthlyAttendancePercent(6);
+        return attendanceService.getMonthlyAttendance6Months();
     }
 
-    // ---------------------------------------------
-    // LATEST ACTIVITY FEED
-    // ---------------------------------------------
+    // ==========================================================
+    //                 LATEST ACTIVITY FEED
+    // ==========================================================
     public List<String> getLatestActivity() {
-        return attendanceService.getLatestActivityMessages(12);
+        return attendanceService.getLatestActivityMessages(10);
     }
 
-    // ---------------------------------------------
-    // TOP STUDENTS (Best Attendance)
-    // ---------------------------------------------
+    // ==========================================================
+    //                  TOP 5 STUDENTS
+    // ==========================================================
     public List<TopStudent> getTopAttendanceStudents() {
         return attendanceService.getTopStudents(5);
     }

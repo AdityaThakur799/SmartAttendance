@@ -19,7 +19,7 @@
       --sidebar-border:#e6eef7;
     }
 
-    /* ============ GLOBAL DARK THEME (same as dashboard + analytics) ============ */
+    /* ============ GLOBAL DARK THEME ============ */
     :root[data-theme="dark"]{
       --bg:#050505;
       --card:#0f0f0f;
@@ -145,10 +145,9 @@
 </head>
 <body>
 
-<!-- Load THEME from dashboard -->
+<!-- Load THEME -->
 <script>
   const savedTheme = localStorage.getItem("theme") || "light";
-  // use same attribute as analytics & dashboard
   document.documentElement.setAttribute("data-theme", savedTheme);
 </script>
 
@@ -179,7 +178,7 @@
     <div class="card">
       <h2>Pending Approval Requests</h2>
       <p style="color:var(--muted);margin-top:6px;">
-        Requests submitted by students for corrections or updates.
+        Requests submitted by students for attendance corrections.
       </p>
 
       <table>
@@ -204,8 +203,28 @@
 <script>
 
   let approvalRequests = [
-    { id:"2021-0001", name:"Caleb White", reason:"Missed attendance", requested:"Mark Present" },
-    { id:"2021-0002", name:"Anna Lee", reason:"Wrong checkout time", requested:"Fix checkout to 3:10 PM" }
+
+    {
+      id: "REQ-1001",
+      name: "Aditya Thakur",
+      reason: "Marked absent incorrectly on 23 Nov",
+      requested: "Mark present"
+    },
+
+    {
+      id: "REQ-1002",
+      name: "Harsh Patel",
+      reason: "Checkout time missing on 18 Nov",
+      requested: "Add checkout at 3:45 PM"
+    },
+
+    {
+      id: "REQ-1003",
+      name: "Aishwarya Jain",
+      reason: "Wrong check-in time recorded on 25 Nov",
+      requested: "Correct check-in to 9:05 AM"
+    }
+
   ];
 
   function loadApprovals(){
