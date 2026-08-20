@@ -4,14 +4,27 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/attendance_db";
-    private static final String USER = "root"; // your MySQL username
-    private static final String PASSWORD = "newpassword"; // your MySQL password
+
+    private static final String HOST = System.getenv("DB_HOST");
+    private static final String PORT = System.getenv("DB_PORT");
+    private static final String DATABASE = System.getenv("DB_NAME");
+    private static final String USER = System.getenv("DB_USER");
+    private static final String PASSWORD = System.getenv("DB_PASSWORD");
+
+    private static final String URL =
+            "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASE
+            + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 
     public static Connection getConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            return DriverManager.getConnection(URL, USER, PASSWORD);
+
+            return DriverManager.getConnection(
+                    URL,
+                    USER,
+                    PASSWORD
+            );
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -21,6 +34,7 @@ public class DatabaseConnection {
     // test connection
     public static void main(String[] args) {
         Connection conn = getConnection();
+
         if (conn != null) {
             System.out.println("✅ Connection Successful!");
         } else {
