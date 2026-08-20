@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class SmartAttendanceApplication {
+public class  SmartAttendanceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SmartAttendanceApplication.class, args);

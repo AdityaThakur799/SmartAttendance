@@ -60,12 +60,13 @@
         </dependency>
 
 
-        <!-- Your existing project libraries -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.31</version>
-        </dependency>
+<!--        commenting this chat gpt says its good for deploymengt in railway -->
+<!--        &lt;!&ndash; Your existing project libraries &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>mysql</groupId>-->
+<!--            <artifactId>mysql-connector-java</artifactId>-->
+<!--            <version>8.0.31</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>com.google.zxing</groupId>
