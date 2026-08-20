@@ -15,3 +15,4 @@ public class DailyAttendanceService {
         return attendanceService.processQR(String.valueOf(studentId));
     }
 }
+// Daily attendance QR service
